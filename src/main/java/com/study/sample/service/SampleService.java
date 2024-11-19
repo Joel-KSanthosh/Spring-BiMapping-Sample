@@ -1,11 +1,13 @@
 package com.study.sample.service;
 
+import java.util.List;
+
 import com.study.sample.dto.AdminDTO;
 import com.study.sample.dto.BookDTO;
 import com.study.sample.dto.BookManagerDTO;
+import com.study.sample.dto.BorrowDTO;
 import com.study.sample.dto.ManagerDTO;
 import com.study.sample.dto.UserDTO;
-import com.study.sample.models.User;
 
 public interface SampleService {
 
@@ -13,8 +15,11 @@ public interface SampleService {
     void insertUser(UserDTO userDTO);
     void insertAdmin(AdminDTO adminDTO);
     void insertManager(ManagerDTO managerDTO);
-    void insertBookManager(BookManagerDTO bookManagerDTO);
+    void borrowBook(BookManagerDTO bookManagerDTO);
 
-    User getUserById(Long id);
+    UserDTO getUserById(Long id);
+    List<BorrowDTO> getUsersBorrowListById(Long id);
+    String returnBook(Long userId, Long bookId);
+    
 
 }

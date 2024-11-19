@@ -1,11 +1,11 @@
 package com.study.sample.service;
 
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import com.study.sample.dto.AdminDTO;
 import com.study.sample.dto.BookDTO;
+import com.study.sample.dto.BorrowDTO;
 import com.study.sample.dto.ManagerDTO;
 import com.study.sample.dto.UserDTO;
 import com.study.sample.models.Book;
@@ -57,11 +57,32 @@ public class Mapper {
         return user;
     }
 
-    public BookManager toBookManager(Optional<Book> book, Optional<User> user){
+    public BookManager toBookManager(Book book, User user){
         BookManager bookManager = new BookManager();
-        bookManager.setBook(book.get());
-        bookManager.setUser(user.get());
+        bookManager.setBook(book);
+        bookManager.setUser(user);
         return bookManager;
+    }
+
+    public UserDTO toUserDTO(User user){
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail(user.getEmail());
+        userDTO.setName(user.getName());
+        userDTO.setPassword(user.getPassword());
+        userDTO.setRole(user.getRole());
+
+        return userDTO;
+    }
+
+    public BorrowDTO toBorrowDTO(BookManager bookManager){
+        BorrowDTO borrow = new BorrowDTO();
+        borrow.setId(bookManager.getId());
+        borrow.setTitle(bookManager.getBook().getTitle());
+        borrow.setBorrowed_on(bookManager.getBorrowed_on());
+        borrow.setReturned_on(bookManager.getReturned_on());
+        borrow.setUsername(bookManager.getUser().getName());
+
+        return borrow;
     }
     
 }

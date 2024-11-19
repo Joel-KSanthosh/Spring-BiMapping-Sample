@@ -1,12 +1,17 @@
 package com.study.sample.service.impl;
 
-import java.util.Optional;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.study.sample.dto.AdminDTO;
 import com.study.sample.dto.BookDTO;
 import com.study.sample.dto.BookManagerDTO;
+import com.study.sample.dto.BorrowDTO;
 import com.study.sample.dto.ManagerDTO;
 import com.study.sample.dto.UserDTO;
 import com.study.sample.models.Book;
@@ -58,12 +63,20 @@ public class SampleServiceImpl implements SampleService{
         userRepository.save(user);
     }
 
+    @Transactional
     @Override
-    public void insertBookManager(BookManagerDTO bookManagerDTO) {
-        Optional<Book> book = bookRepository.findById(bookManagerDTO.getBook());
-        Optional<User> user = userRepository.findById(bookManagerDTO.getUser());
-        if (book.isPresent() && user.isPresent()) {
+    public void borrowBook(BookManagerDTO bookManagerDTO) {
+        Book book = bookRepository.findById(bookManagerDTO.getBook()).get();
+        User user = userRepository.findById(bookManagerDTO.getUser()).get();
+        if (book != null && user != null) {
+            book.setQuantity(validateQuantityAndDecrement(book.getQuantity()));
+            List<BookManager> check = bookManagerRepository.findAllByUserAndBook(user, book);
+            BookManager val = check.get(check.size()-1);
+            if(val.getReturned_on() == null){
+                throw new IllegalArgumentException("You have already borrowed the same book and not returned");
+            }
             BookManager bookManager = mapper.toBookManager(book, user);
+            bookRepository.save(book);
             bookManagerRepository.save(bookManager);
         }
         else{
@@ -73,11 +86,44 @@ public class SampleServiceImpl implements SampleService{
     }
 
     @Override
-    public User getUserById(Long id) {
-        User user = userRepository.findById(id).get();
+    public UserDTO getUserById(Long id) {
+        UserDTO user = mapper.toUserDTO(userRepository.findById(id).get());
         return user;
     }
 
+    public List<BorrowDTO> getUsersBorrowListById(Long id){
+        List<BookManager> bookManagers = bookManagerRepository.findAllByUserId(id);
+        List<BorrowDTO> borrows = new ArrayList<>();
+        for(BookManager book : bookManagers){
+            borrows.add(mapper.toBorrowDTO(book));
+        }
+        return borrows;
+    }
+
+    private Long validateQuantityAndDecrement(Long quantity){
+        if(quantity < 1){
+            throw new IllegalArgumentException("Selected Book is current unavailable");
+        }
+        return --quantity;
+    }
+
+    private Long incrementAndGet(Long quantity){
+        return ++quantity;
+    }
+
+    public String returnBook(Long userId, Long bookId){
+        BookManager bookManager = bookManagerRepository.findFirstByUserIdAndBookIdOrderByIdDesc(userId, bookId);
+        if(bookManager.getReturned_on() !=null ){
+            throw new IllegalArgumentException("You have not borrowed the given book or already returned");
+        }
+        Book book = bookManager.getBook();
+        book.setQuantity(incrementAndGet(book.getQuantity()));
+        Date returnDate = new Date(Calendar.getInstance().getTime().getTime());
+        bookManager.setReturned_on(returnDate);
+        bookManagerRepository.save(bookManager);
+        bookRepository.save(book);
+        return "Successfully Returned Book with name "+ bookManager.getBook().getTitle();
+    }
     
 
 }

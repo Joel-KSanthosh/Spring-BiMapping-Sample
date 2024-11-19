@@ -5,12 +5,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.study.sample.dto.AdminDTO;
 import com.study.sample.dto.BookDTO;
 import com.study.sample.dto.BookManagerDTO;
-import com.study.sample.models.User;
+import com.study.sample.dto.BorrowDTO;
+import com.study.sample.dto.UserDTO;
 import com.study.sample.service.SampleService;
 
 import jakarta.validation.Valid;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
+
 
 
 
@@ -50,7 +54,7 @@ public class SampleController {
     
     @PostMapping("/borrow")
     public ResponseEntity<?> borrowBookManagerDTO(@Valid @RequestBody BookManagerDTO bookManagerDTO) {
-        sampleService.insertBookManager(bookManagerDTO);
+        sampleService.borrowBook(bookManagerDTO);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Sucessfully Borrowed Book  "+ bookManagerDTO.getBook() +" by "+ bookManagerDTO.getUser());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -58,8 +62,22 @@ public class SampleController {
     
     @GetMapping("/user")
     public ResponseEntity<?> getUser(@RequestParam Long id) {
-        Map<String, User> response = new HashMap<>();
+        Map<String, UserDTO> response = new HashMap<>();
         response.put("message", sampleService.getUserById(id));
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    @GetMapping("/borrow")
+    public ResponseEntity<?> getUsersBorrowList(@RequestParam Long id) {   
+        Map<String,List<BorrowDTO>> response = new HashMap<>();
+        response.put("message", sampleService.getUsersBorrowListById(id));
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+    
+    @PutMapping("/return")
+    public ResponseEntity<?> returnBook(@RequestParam Long user_id, @RequestParam Long book_id) {
+        Map<String,String> response = new HashMap<>();
+        response.put("message", sampleService.returnBook(user_id, book_id));
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
     
